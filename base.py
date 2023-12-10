@@ -112,10 +112,11 @@ class Base:
             return None
 
         user = User(
-            tg=users[0][1],
-            sex=users[0][0],
+            tg=users[0][0],
+            sex=users[0][1],
             years=users[0][2],
             city=users[0][3],
+            interests=[],
         )
 
         cur.close()
