@@ -18,9 +18,9 @@ def menu(message):
 
 
 def on_click(message):
-    if message.text == 'help':
+    if message.text == '/help':
         help_com(message)
-    elif message.text == 'questionnaire':
+    elif message.text == '/questionnaire':
         start_questionnaire(message)
 
 
@@ -54,9 +54,17 @@ def ask_question(message):
         bot.send_message(message.chat.id, current_question)
         bot.register_next_step_handler(message, process_answer)
     else:
+        print(user_responses[user_id])
         bot.send_message(message.chat.id, "Анкета заполнена! \n /menu - вернуться в меню \n /connect - запустить процесс поиска новой группы")
-        new_user = User(user_id, user_responses[user_id][0], user_responses[user_id][1], user_responses[user_id][2])
-        base.create_user(new_user)
+        new_user = User(user_id, user_responses[user_id][0], user_responses[user_id][1], user_responses[user_id][2], [user_responses[user_id][3], user_responses[user_id][4], user_responses[user_id][5]])
+        del(user_responses[user_id])
+        usr = base.get_user_by_tg_id(new_user.tg)
+        if (usr == None):
+            base.create_user(new_user)
+            base.add_interests(new_user.tg, new_user.interests)
+        else:
+            base.update_user(new_user)
+            base.update_interests(new_user.tg, new_user.interests)
 
 
 def process_answer(message):

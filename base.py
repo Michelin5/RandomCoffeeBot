@@ -12,9 +12,13 @@ CREATE TABLE IF NOT EXISTS users
 """
 
 CREATE_TABLE_INTERESTS = """
-CREATE TABLE interests(
-    id INT AUTO_INCREMENT PRIMARY KEY,
-
+CREATE TABLE IF NOT EXISTS interests
+(
+  id INTEGER AUTO_INCREMENT PRIMARY KEY,
+  tg INTEGER,
+  int1 VARCHAR(50),
+  int2 VARCHAR(50),
+  int3 VARCHAR(50)
 );
 """
 
@@ -26,6 +30,32 @@ VALUES (
     {years},
     "{city}"
 );
+"""
+
+UPDATE_USER = """
+UPDATE users
+SET sex = "{sex}",
+    years = {years},
+    city = "{city}"
+WHERE tg = {tg};
+"""
+
+ADD_INTERESTS = """
+INSERT INTO interests(tg, int1, int2, int3)
+VALUES (
+    {tg},
+    "{int1}",
+    "{int2}",
+    "{int3}"
+);
+"""
+
+UPDATE_INTERESTS = """
+UPDATE interests
+SET int1 = "{int1}",
+    int2 = "{int2}",
+    int3 = "{int3}"
+WHERE tg = {tg};
 """
 
 SELECT_USER = """
@@ -57,6 +87,7 @@ class Base:
         cur = conn.cursor()
 
         cur.execute(CREATE_TABLE_USERS)
+        cur.execute(CREATE_TABLE_INTERESTS)
 
         conn.commit()
         cur.close()
@@ -85,11 +116,11 @@ class Base:
         cur = conn.cursor()
 
         cur.execute(
-            ADD_USER.format(
-                tg=user.tg,
+            UPDATE_USER.format(
                 sex=user.sex,
                 years=user.years,
                 city=user.city,
+                tg=user.tg
             )
         )
 
@@ -124,9 +155,52 @@ class Base:
 
         return user
 
-    def add_interests(
-            self,
-            tg,
-            interests,
-    ):
-        pass
+    def add_interests(self,
+                      tg,
+                      interests):
+        conn = sqlite3.connect(self.base_name)
+        cur = conn.cursor()
+
+        cur.execute(
+            ADD_INTERESTS.format(
+                tg=tg,
+                int1=interests[0],
+                int2=interests[1],
+                int3=interests[2],
+            )
+        )
+
+        conn.commit()
+        cur.close()
+        conn.close()
+    
+    def update_interests(self,
+                      tg,
+                      interests):
+        conn = sqlite3.connect(self.base_name)
+        cur = conn.cursor()
+
+        cur.execute(
+            UPDATE_INTERESTS.format(
+                tg=tg,
+                int1=interests[0],
+                int2=interests[1],
+                int3=interests[2],
+            )
+        )
+
+        conn.commit()
+        cur.close()
+        conn.close()
+
+    def fetch_interests(self):
+        conn = sqlite3.connect(self.base_name)
+        cur = conn.cursor()
+        
+        cur.execute("SELECT tg, int1, int2, int3 FROM interests")
+        l = list(cur.fetchall())
+        
+        cur.close()
+        conn.close()
+        
+        return l
