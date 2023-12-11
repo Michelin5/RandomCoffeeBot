@@ -18,11 +18,16 @@ def menu(message):
 
 
 def on_click(message):
-    if message.text == '/help':
+    if message.text == 'help':
         help_com(message)
-    elif message.text == '/questionnaire':
+    elif message.text == 'questionnaire':
         start_questionnaire(message)
-
+    elif message.text == 'connect':
+        checker = base.find_group(message.from_user.id)
+        if checker == None:
+            base.create_group(message.from_user.id)
+        else:
+            base.add_to_group(checker,message.from_user.id)
 
     talk(message)
     bot.register_next_step_handler(message, on_click)
@@ -61,10 +66,8 @@ def ask_question(message):
         usr = base.get_user_by_tg_id(new_user.tg)
         if (usr == None):
             base.create_user(new_user)
-            base.add_interests(new_user.tg, new_user.interests)
         else:
             base.update_user(new_user)
-            base.update_interests(new_user.tg, new_user.interests)
 
 
 def process_answer(message):
@@ -80,6 +83,15 @@ def pullback(callback):
     if callback.message:
         if callback.data == 'help':
             help_com(callback.message)
+        elif callback.data == 'questionnaire':
+            start_questionnaire(callback.message)
+        elif callback.data == 'connect':
+            checker = base.find_group(callback.message.from_user.id)
+            if checker == None:
+                base.create_group(callback.message.from_user.id)
+            else:
+                base.add_to_group(checker, callback.message.from_user.id)
+
 
 
 @bot.message_handler(commands=['start'])
@@ -90,6 +102,20 @@ def main(message):
         bot.send_message(message.chat.id, f'Привет, {message.from_user.first_name} {message.from_user.last_name}')
     bot.send_message(message.chat.id, 'Рад, что вы решили воспользоваться моими услугами!')
     bot.send_message(message.chat.id, 'Чтобы открыть меню, введите /menu')
+
+
+@bot.message_handler(commands=['questionnaire'])
+def quest(message):
+    start_questionnaire(message)
+
+
+@bot.message_handler(commands=['connect'])
+def connect_but(message):
+    checker = base.find_group(message.from_user.id)
+    if checker == None:
+        base.create_group(message.from_user.id)
+    else:
+        base.add_to_group(checker, message.from_user.id)
 
 
 @bot.message_handler(commands=['help'])
@@ -113,7 +139,6 @@ def talk(message):
 
     elif message.text.lower() in dict_checker:
         bot.reply_to(message, f'Ваш ID: {message.from_user.id}')
-
 
 
 bot.infinity_polling()
