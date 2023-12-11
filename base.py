@@ -1,4 +1,5 @@
 import sqlite3
+import pandas as pd
 
 CREATE_TABLE_USERS = """
 CREATE TABLE IF NOT EXISTS users
@@ -19,6 +20,24 @@ CREATE TABLE IF NOT EXISTS interests
   int1 VARCHAR(50),
   int2 VARCHAR(50),
   int3 VARCHAR(50)
+);
+"""
+
+CREATE_TABLE_GROUPS = """
+CREATE TABLE IF NOT EXISTS groups
+(
+  id INTEGER AUTO_INCREMENT PRIMARY KEY,
+  count INTEGER,
+  tg1 INTEGER,
+  tg2 INTEGER,
+  tg3 INTEGER,
+  tg4 INTEGER,
+  tg5 INTEGER,
+  tg6 INTEGER,
+  tg7 INTEGER,
+  tg8 INTEGER,
+  tg9 INTEGER,
+  tg10 INTEGER
 );
 """
 
@@ -58,9 +77,29 @@ SET int1 = "{int1}",
 WHERE tg = {tg};
 """
 
+CREATE_GROUP = """
+INSERT INTO groups(count, tg1)
+VALUES (
+    1,
+    {tg}
+);
+"""
+
+UPDATE_GROUP = """
+UPDATE groups
+SET count = count + 1,
+    {tgn} = {tg}
+WHERE id = {group_id};
+"""
+
 SELECT_USER = """
 SELECT sex, tg, years, city FROM users
 WHERE tg = {tg};
+"""
+
+SELECT_GROUP_COUNT = """
+SELECT count FROM groups
+WHERE id = {group_id};
 """
 
 BASE_NAME = "my_base.db"
@@ -88,6 +127,7 @@ class Base:
 
         cur.execute(CREATE_TABLE_USERS)
         cur.execute(CREATE_TABLE_INTERESTS)
+        cur.execute(CREATE_TABLE_GROUPS)
 
         conn.commit()
         cur.close()
@@ -106,12 +146,20 @@ class Base:
             )
         )
 
+        cur.execute(
+            ADD_INTERESTS.format(
+                tg=user.tg,
+                int1=user.interests[0].lower(),
+                int2=user.interests[1].lower(),
+                int3=user.interests[2].lower(),
+            )
+        )
+
         conn.commit()
         cur.close()
         conn.close()
 
     def update_user(self, user):
-        # TO_DO
         conn = sqlite3.connect(self.base_name)
         cur = conn.cursor()
 
@@ -120,7 +168,16 @@ class Base:
                 sex=user.sex,
                 years=user.years,
                 city=user.city,
-                tg=user.tg
+                tg=user.tg,
+            )
+        )
+
+        cur.execute(
+            UPDATE_INTERESTS.format(
+                tg=user.tg,
+                int1=user.interests[0].lower(),
+                int2=user.interests[1].lower(),
+                int3=user.interests[2].lower(),
             )
         )
 
@@ -155,43 +212,22 @@ class Base:
 
         return user
 
-    def add_interests(self,
-                      tg,
-                      interests):
+    def get_group_count_by_id(self, group_id):
         conn = sqlite3.connect(self.base_name)
         cur = conn.cursor()
 
         cur.execute(
-            ADD_INTERESTS.format(
-                tg=tg,
-                int1=interests[0],
-                int2=interests[1],
-                int3=interests[2],
+            SELECT_GROUP_COUNT.format(
+                group_id=group_id,
             )
         )
-
-        conn.commit()
+        
+        count = cur.fetchall()
+        
         cur.close()
         conn.close()
-    
-    def update_interests(self,
-                      tg,
-                      interests):
-        conn = sqlite3.connect(self.base_name)
-        cur = conn.cursor()
 
-        cur.execute(
-            UPDATE_INTERESTS.format(
-                tg=tg,
-                int1=interests[0],
-                int2=interests[1],
-                int3=interests[2],
-            )
-        )
-
-        conn.commit()
-        cur.close()
-        conn.close()
+        return count[0][0]
 
     def fetch_interests(self):
         conn = sqlite3.connect(self.base_name)
@@ -203,4 +239,39 @@ class Base:
         cur.close()
         conn.close()
         
-        return l
+        return {l[i][0]: [l[i][1], l[i][2], l[i][3]] for i in range(len(l))}
+
+    def create_group(self,
+                     tg):
+        conn = sqlite3.connect(self.base_name)
+        cur = conn.cursor()
+
+        cur.execute(
+            CREATE_GROUP.format(
+                tg=tg,
+            )
+        )
+
+        conn.commit()
+        cur.close()
+        conn.close()
+    
+    def add_to_group(self,
+                     group_id,
+                     tg):
+        conn = sqlite3.connect(self.base_name)
+        cur = conn.cursor()
+
+        count = self.get_group_count_by_id(group_id)
+
+        cur.execute(
+            UPDATE_GROUP.format(
+                group_id=group_id,
+                tgn="tg"+str(count+1),
+                tg=tg,
+            )
+        )
+
+        conn.commit()
+        cur.close()
+        conn.close()
