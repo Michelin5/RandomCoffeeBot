@@ -1,10 +1,9 @@
 import sqlite3
-import pandas as pd
 
 CREATE_TABLE_USERS = """
 CREATE TABLE IF NOT EXISTS users
 (
-  id INTEGER AUTO_INCREMENT PRIMARY KEY,
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
   tg INTEGER,
   sex VARCHAR(50),
   years INTEGER,
@@ -15,7 +14,7 @@ CREATE TABLE IF NOT EXISTS users
 CREATE_TABLE_INTERESTS = """
 CREATE TABLE IF NOT EXISTS interests
 (
-  id INTEGER AUTO_INCREMENT PRIMARY KEY,
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
   tg INTEGER,
   int1 VARCHAR(50),
   int2 VARCHAR(50),
@@ -26,7 +25,7 @@ CREATE TABLE IF NOT EXISTS interests
 CREATE_TABLE_GROUPS = """
 CREATE TABLE IF NOT EXISTS groups
 (
-  id INTEGER AUTO_INCREMENT PRIMARY KEY,
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
   count INTEGER,
   tg1 INTEGER,
   tg2 INTEGER,
@@ -42,10 +41,10 @@ CREATE TABLE IF NOT EXISTS groups
 """
 
 ADD_USER = """
-INSERT INTO users(sex, tg, years, city)
+INSERT INTO users(tg, sex, years, city)
 VALUES (
-    "{sex}",
     {tg},
+    "{sex}",
     {years},
     "{city}"
 );
@@ -93,7 +92,7 @@ WHERE id = {group_id};
 """
 
 SELECT_USER = """
-SELECT sex, tg, years, city FROM users
+SELECT tg, sex, years, city FROM users
 WHERE tg = {tg};
 """
 
@@ -112,8 +111,8 @@ class User:
                  years,
                  city,
                  interests=[]):
-        self.sex = sex
         self.tg = tg
+        self.sex = sex
         self.years = years
         self.city = city
         self.interests = interests
@@ -221,9 +220,9 @@ class Base:
                 group_id=group_id,
             )
         )
-        
+
         count = cur.fetchall()
-        
+
         cur.close()
         conn.close()
 
@@ -232,13 +231,13 @@ class Base:
     def fetch_interests(self):
         conn = sqlite3.connect(self.base_name)
         cur = conn.cursor()
-        
+
         cur.execute("SELECT tg, int1, int2, int3 FROM interests")
         l = list(cur.fetchall())
-        
+
         cur.close()
         conn.close()
-        
+
         return {l[i][0]: [l[i][1], l[i][2], l[i][3]] for i in range(len(l))}
 
     def create_group(self,
@@ -255,7 +254,7 @@ class Base:
         conn.commit()
         cur.close()
         conn.close()
-    
+
     def add_to_group(self,
                      group_id,
                      tg):
@@ -267,7 +266,7 @@ class Base:
         cur.execute(
             UPDATE_GROUP.format(
                 group_id=group_id,
-                tgn="tg"+str(count+1),
+                tgn="tg" + str(count + 1),
                 tg=tg,
             )
         )
@@ -275,3 +274,4 @@ class Base:
         conn.commit()
         cur.close()
         conn.close()
+                       
