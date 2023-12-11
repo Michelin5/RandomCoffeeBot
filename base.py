@@ -1,4 +1,6 @@
 import sqlite3
+from interests import get_data, get_tables, get_group_avgs
+import numpy as np
 
 CREATE_TABLE_USERS = """
 CREATE TABLE IF NOT EXISTS users
@@ -274,4 +276,42 @@ class Base:
         conn.commit()
         cur.close()
         conn.close()
-                       
+        
+    def fetch_groups(self):
+        conn = sqlite3.connect(self.base_name)
+        cur = conn.cursor()
+        
+        cur.execute("SELECT tg1, tg2, tg3, tg4, tg5, tg6, tg7, tg8, tg9, tg10 FROM groups")
+        l = list(cur.fetchall())
+        
+        cur.close()
+        conn.close()
+        
+        return l
+
+    def find_group(self, tg):
+        conn = sqlite3.connect(self.base_name)
+        cur = conn.cursor()
+
+        groups = self.fetch_groups()
+        user_interests = self.fetch_interests()
+
+        data = get_data(user_interests)
+        tables = get_tables(data)
+        group_avgs = get_group_avgs(tables, groups)
+
+        list_of_good = []
+        
+        for group_id in group_avgs.columns:
+            difference = np.sqrt(((tables[0][tg] - group_avgs[group_id]) ** 2).sum())
+            if (difference < 1.3 and self.get_group_count_by_id(group_id) < 10):
+                list_of_good.append((difference, group_id))
+
+        list_of_good.sort()
+        if (len(list_of_good)) == 0:
+            return None
+        else:
+            return list_of_good[0][1]
+
+        cur.close()
+        conn.close()
