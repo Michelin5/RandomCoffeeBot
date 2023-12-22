@@ -1,6 +1,9 @@
 import telebot
 from telebot import types
 from base import Base, User
+from log import BotLogger
+
+logger = BotLogger('bot.log')
 
 base = Base()
 bot = telebot.TeleBot('6982700983:AAFUF3urwEHb36N_L6pVHt59Fy4tJdDFYvE')
@@ -53,6 +56,7 @@ def start_questionnaire(message):
 
 def ask_question(message):
     user_id = message.from_user.id
+    logger.log_info(f"Получено сообщение от пользователя {message.from_user.id}: {message.text}")
     current_question_index = len(user_responses[user_id])
     if current_question_index < len(questions):
         current_question = questions[current_question_index]
@@ -100,17 +104,20 @@ def main(message):
         bot.reply_to(message, f'Привет, {message.from_user.first_name}')
     else:
         bot.send_message(message.chat.id, f'Привет, {message.from_user.first_name} {message.from_user.last_name}')
+    logger.log_info(f"Пользователь {message.from_user.id} запустил бота командой /start")
     bot.send_message(message.chat.id, 'Рад, что вы решили воспользоваться моими услугами!')
     bot.send_message(message.chat.id, 'Чтобы открыть меню, введите /menu')
 
 
 @bot.message_handler(commands=['questionnaire'])
 def quest(message):
+    logger.log_info(f"Пользователь {message.from_user.id} начал заполнение анкеты командой /questionnaire")
     start_questionnaire(message)
 
 
 @bot.message_handler(commands=['connect'])
 def connect_but(message):
+    logger.log_info(f"Пользователь {message.from_user.id} запустил процесс поиска новой группы командой /connect")
     checker = base.find_group(message.from_user.id)
     if checker == None:
         base.create_group(message.from_user.id)
@@ -123,11 +130,13 @@ def help_com(message):
     msg = 'Список доступных команд: \n /start - запуск бота \n ' \
           '/questionnaire - пройти анкетирование/изменить ответы \n /info - узнать данные о себе, свои группы \n'\
           ' /connect - запустить процесс поиска новой группы \n /menu - все функции в виде кнопок'
+    logger.log_info(f"Пользователь {message.from_user.id} запросил список команд командой /help")
     bot.send_message(message.chat.id, msg)
 
 @bot.message_handler()
 def talk(message):
     dict_checker = ['id', 'хочу узнать свой id', 'выведи мой id', 'какой мой id?', 'какой мой id']
+    logger.log_info(f"Получено сообщение от пользователя {message.from_user.id}: {message.text}")
 
     if message.text.lower() == 'привет':
         if message.from_user.last_name == None:
