@@ -296,6 +296,9 @@ class Base:
         groups = self.fetch_groups()
         user_interests = self.fetch_interests()
 
+        cur.close()
+        conn.close()
+
         data = get_data(user_interests)
         tables = get_tables(data)
         group_avgs = get_group_avgs(tables, groups)
@@ -304,7 +307,7 @@ class Base:
         
         for group_id in group_avgs.columns:
             difference = np.sqrt(((tables[0][tg] - group_avgs[group_id]) ** 2).sum())
-            if (difference < 1.3 and self.get_group_count_by_id(group_id) < 10):
+            if (difference < 1.25 and self.get_group_count_by_id(group_id) < 10):
                 list_of_good.append((difference, group_id))
 
         list_of_good.sort()
@@ -313,5 +316,28 @@ class Base:
         else:
             return list_of_good[0][1]
 
+    def match(self, tg):
+        conn = sqlite3.connect(self.base_name)
+        cur = conn.cursor()
+
+        user_interests = self.fetch_interests()
+
         cur.close()
         conn.close()
+
+        data = get_data(user_interests)
+        tables = get_tables(data)
+
+        list_of_others = []
+        
+        for other_tg in tables[0].columns:
+            if (other_tg != tg):
+                difference = np.sqrt(((tables[0][tg] - tables[0][other_tg]) ** 2).sum())
+                list_of_others.append((other_tg, difference))
+
+        list_of_others.sort(key = lambda i: i[1])
+        
+        if (len(list_of_others)) == 0:
+            return None
+        else:
+            return list_of_others[np.random.randint(0, int(np.sqrt(len(list_of_others))))][0]
