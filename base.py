@@ -342,14 +342,8 @@ class Base:
         return l
 
     def find_group(self, tg):
-        conn = sqlite3.connect(self.base_name)
-        cur = conn.cursor()
-
         groups = self.fetch_groups()
         user_interests = self.fetch_interests()
-
-        cur.close()
-        conn.close()
 
         data = get_data(user_interests)
         tables = get_tables(data)
@@ -359,7 +353,7 @@ class Base:
         
         for group_id in group_avgs.columns:
             difference = np.sqrt(((tables[0][tg] - group_avgs[group_id]) ** 2).sum())
-            if (difference < 1.25 and self.get_group_count_by_id(group_id) < 10):
+            if (difference < 1.25 and self.get_group_count_by_id(group_id) < 10 and tg not in groups[group_id - 1]):
                 list_of_good.append((difference, group_id))
 
         list_of_good.sort()
