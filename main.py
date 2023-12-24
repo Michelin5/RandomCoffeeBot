@@ -1,12 +1,15 @@
 import telebot
+import os
 from telebot import types
 from base import Base, User
 from log import BotLogger
 
+
 logger = BotLogger('bot.log')
 
 base = Base()
-bot = telebot.TeleBot('6982700983:AAFUF3urwEHb36N_L6pVHt59Fy4tJdDFYvE')
+TOKEN = os.getenv('BOTAPIKEY')
+bot = telebot.TeleBot(TOKEN)
 
 @bot.message_handler(commands=['menu'])
 def menu(message):
