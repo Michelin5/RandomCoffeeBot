@@ -103,6 +103,25 @@ SELECT count FROM groups
 WHERE id = {group_id};
 """
 
+SELECT_GROUP_USERS = """
+SELECT tg1, tg2, tg3, tg4, tg5, tg6, tg7, tg8, tg9, tg10 FROM groups
+WHERE id = {group_id};
+"""
+
+SELECT_GROUP_ID = """
+SELECT id FROM groups
+WHERE tg1 = {tg}
+OR tg2 = {tg}
+OR tg3 = {tg}
+OR tg4 = {tg}
+OR tg5 = {tg}
+OR tg6 = {tg}
+OR tg7 = {tg}
+OR tg8 = {tg}
+OR tg9 = {tg}
+OR tg10 = {tg};
+"""
+
 BASE_NAME = "my_base.db"
 
 
@@ -287,6 +306,39 @@ class Base:
         cur.close()
         conn.close()
         
+        return l
+
+    def fetch_group_user_tgs(self, group_id):
+        conn = sqlite3.connect(self.base_name)
+        cur = conn.cursor()
+
+        cur.execute(SELECT_GROUP_USERS.format(group_id = group_id))
+        l = list(cur.fetchall())
+
+        cur.close()
+        conn.close()
+
+        if (len(l)) == 0:
+            return None
+
+        l = list(l[0])
+        while (l[-1] == None):
+            l.pop()
+
+        return l
+
+    def fetch_group_id_by_user(self, tg):
+        conn = sqlite3.connect(self.base_name)
+        cur = conn.cursor()
+
+        cur.execute(SELECT_GROUP_ID.format(tg = tg))
+        l = list(cur.fetchall())
+
+        cur.close()
+        conn.close()
+
+        l = [i[0] for i in l]
+
         return l
 
     def find_group(self, tg):
