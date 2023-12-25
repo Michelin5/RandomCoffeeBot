@@ -9,7 +9,7 @@ logger = BotLogger('bot.log')
 
 base = Base()
 TOKEN = os.getenv('BOT_API_KEY')
-bot = telebot.TeleBot('5655668531:AAGTdUYXdLv4Rwkfsx_DkZi9lFycmFYM8Oc')
+bot = telebot.TeleBot(TOKEN)
 
 @bot.message_handler(commands=['menu'])
 def menu(message):
@@ -153,4 +153,4 @@ def talk(message):
         bot.reply_to(message, f'Ваш ID: {message.from_user.id}')
 
 
-bot.polling(none_stop=True, interval=0)
+bot.infinity_polling()
