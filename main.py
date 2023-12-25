@@ -4,39 +4,11 @@ from telebot import types
 from base import Base, User
 from log import BotLogger
 
-
 logger = BotLogger('bot.log')
 
 base = Base()
 TOKEN = os.getenv('BOT_API_KEY')
 bot = telebot.TeleBot(TOKEN)
-
-@bot.message_handler(commands=['menu'])
-def menu(message):
-    markup = types.ReplyKeyboardMarkup(row_width=2)
-    help_b = types.KeyboardButton('help')
-    questionnaire = types.KeyboardButton('questionnaire')
-    info_b = types.KeyboardButton('info')
-    connect = types.KeyboardButton('connect')
-    markup.add(help_b, questionnaire, info_b, connect)
-    bot.send_message(message.chat.id, 'Menu', reply_markup=markup)
-    bot.register_next_step_handler(message, on_click)
-
-
-def on_click(message):
-    if message.text == 'help':
-        help_com(message)
-    elif message.text == 'questionnaire':
-        start_questionnaire(message)
-    elif message.text == 'connect':
-        checker = base.find_group(message.from_user.id)
-        if checker == None:
-            base.create_group(message.from_user.id)
-        else:
-            base.add_to_group(checker,message.from_user.id)
-
-    talk(message)
-    bot.register_next_step_handler(message, on_click)
 
 
 questions = [
@@ -47,6 +19,26 @@ questions = [
     "Осталось два",
     "И еще один"
 ]
+
+interests = '1) Аниме\n \
+2) Видеоигры\n\
+3) Волонтерство\n\
+4) Животные\n\
+5) Инвестирование\n\
+6) Кино\n\
+7) Коллекционирование\n\
+8) Музыка\n\
+9) Настолки\n\
+10) Программирование\n\
+11) Путешествия\n\
+12) Рисование\n\
+13) Рукоделие\n\
+14) Саморазвитие\n\
+15) Спорт\n\
+16) Танцы\n\
+17) Фотография\n\
+18) Чтение\n\
+'
 
 user_responses = {}
 
@@ -64,6 +56,8 @@ def ask_question(message):
     if current_question_index < len(questions):
         current_question = questions[current_question_index]
         bot.send_message(message.chat.id, current_question)
+        if (current_question_index == 3):
+            bot.send_message(message.chat.id, interests)
         bot.register_next_step_handler(message, process_answer)
     else:
         print(user_responses[user_id])
@@ -84,6 +78,31 @@ def process_answer(message):
     user_responses[user_id].append(message.text)
     ask_question(message)
 
+@bot.message_handler(commands=['menu'])
+def menu(message):
+    markup = types.ReplyKeyboardMarkup(row_width=2)
+    help_b = types.KeyboardButton('help')
+    questionnaire = types.KeyboardButton('questionnaire')
+    info_b = types.KeyboardButton('info')
+    connect = types.KeyboardButton('connect')
+    markup.add(help_b, questionnaire, info_b, connect)
+    bot.send_message(message.chat.id, 'Menu', reply_markup=markup)
+    bot.register_next_step_handler(message, on_click)
+
+
+def on_click(message):
+    if message.text == 'help':
+        help_com(message)
+    elif message.text == 'questionnaire':
+        start_questionnaire(message)
+    elif message.text == 'connect':
+        connect_but(message)
+    elif message.text == 'info':
+        info_dat(message)
+
+    talk(message)
+    bot.register_next_step_handler(message, on_click)
+
 
 @bot.callback_query_handler(func=lambda call: True)
 def pullback(callback):
@@ -93,11 +112,10 @@ def pullback(callback):
         elif callback.data == 'questionnaire':
             start_questionnaire(callback.message)
         elif callback.data == 'connect':
-            checker = base.find_group(callback.message.from_user.id)
-            if checker == None:
-                base.create_group(callback.message.from_user.id)
-            else:
-                base.add_to_group(checker, callback.message.from_user.id)
+            connect_but(callback.message)
+        elif callback.data == 'info':
+            info_dat(callback.message)
+
 
 
 
@@ -117,6 +135,13 @@ def quest(message):
     logger.log_info(f"Пользователь {message.from_user.id} начал заполнение анкеты командой /questionnaire")
     start_questionnaire(message)
 
+@bot.message_handler(commands=['info'])
+def info_dat(message):
+    bot.reply_to(message, f'Ваш ID: {message.from_user.id}')
+    cur_user_interests = base.fetch_interests()
+    msg = 'Your interests are: '+cur_user_interests[message.from_user.id][0]+" "+cur_user_interests[message.from_user.id][1]+" "+cur_user_interests[message.from_user.id][2]
+    bot.send_message(message.chat.id, msg)
+
 
 @bot.message_handler(commands=['connect'])
 def connect_but(message):
@@ -124,8 +149,10 @@ def connect_but(message):
     checker = base.find_group(message.from_user.id)
     if checker == None:
         base.create_group(message.from_user.id)
+        base.add_to_group(checker, message.from_user.id)
     else:
         base.add_to_group(checker, message.from_user.id)
+
 
 
 @bot.message_handler(commands=['help'])
