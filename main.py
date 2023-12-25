@@ -9,7 +9,7 @@ logger = BotLogger('bot.log')
 
 base = Base()
 TOKEN = os.getenv('BOT_API_KEY')
-bot = telebot.TeleBot('5655668531:AAEZMRXM8ymp0sNohNcXnL4v-T-aetN0s5Y')
+bot = telebot.TeleBot(TOKEN)
 
 @bot.message_handler(commands=['menu'])
 def menu(message):
