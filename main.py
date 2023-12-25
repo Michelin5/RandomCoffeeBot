@@ -10,7 +10,6 @@ base = Base()
 TOKEN = os.getenv('BOT_API_KEY')
 bot = telebot.TeleBot(TOKEN)
 
-
 questions = [
     "Твой пол? М/Ж",
     "Сколько тебе лет?",
@@ -96,7 +95,11 @@ def on_click(message):
     elif message.text == 'questionnaire':
         start_questionnaire(message)
     elif message.text == 'connect':
-        connect_but(message)
+        checker = base.find_group(message.from_user.id)
+        if checker == None:
+            base.create_group(message.from_user.id)
+        else:
+            base.add_to_group(checker, message.from_user.id)
     elif message.text == 'info':
         info_dat(message)
 
@@ -112,8 +115,13 @@ def pullback(callback):
         elif callback.data == 'questionnaire':
             start_questionnaire(callback.message)
         elif callback.data == 'connect':
-            connect_but(callback.message)
-        elif callback.data == 'info':
+            checker = base.find_group(callback.message.from_user.id)
+            if checker == None:
+                base.create_group(callback.message.from_user.id)
+            else:
+                base.add_to_group(checker, callback.message.from_user.id)
+
+    elif callback.data == 'info':
             info_dat(callback.message)
 
 
@@ -149,7 +157,6 @@ def connect_but(message):
     checker = base.find_group(message.from_user.id)
     if checker == None:
         base.create_group(message.from_user.id)
-        base.add_to_group(checker, message.from_user.id)
     else:
         base.add_to_group(checker, message.from_user.id)
 
@@ -175,7 +182,6 @@ def talk(message):
         else:
             bot.reply_to(message, f'Привет, {message.from_user.first_name} {message.from_user.last_name}')
             bot.send_message(message.chat.id, 'Чем могу быть сегодня полезен?')
-
     elif message.text.lower() in dict_checker:
         bot.reply_to(message, f'Ваш ID: {message.from_user.id}')
 
