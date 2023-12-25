@@ -8,7 +8,7 @@ from log import BotLogger
 logger = BotLogger('bot.log')
 
 base = Base()
-TOKEN = os.getenv('BOTAPIKEY')
+TOKEN = os.getenv('BOT_API_KEY')
 bot = telebot.TeleBot(TOKEN)
 
 @bot.message_handler(commands=['menu'])
